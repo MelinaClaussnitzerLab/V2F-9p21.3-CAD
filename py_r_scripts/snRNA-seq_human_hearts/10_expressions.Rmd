@@ -1,0 +1,198 @@
+```{r}
+rm(list = ls())
+library(dplyr)
+library(stringr)
+library(Matrix)
+library(anndata)
+library(rhdf5)
+library(ggplot2)
+library(ggpubr)
+library(tidyverse)
+```
+
+```{r}
+
+ad <- anndata::read_h5ad("../data/human_dcm_hcm_scportal_03.17.2022.h5ad")
+CellBender_adjusted_counts <- ad$X
+meta <- ad$obs
+
+nrow(CellBender_adjusted_counts)
+ncol(CellBender_adjusted_counts)
+
+summary(as.factor(meta$disease))
+summary(as.factor(meta$donor_id))
+
+
+
+```
+
+```{r}
+summary(as.factor(meta$cell_type_leiden0.6))
+a_cell_type <- unique(meta$cell_type_leiden0.6)[1]
+first <- T
+for (a_cell_type in unique(meta$cell_type_leiden0.6)){
+  
+  curr_meta <- meta[which(meta$cell_type_leiden0.6 == a_cell_type),]
+  a_subj <- unique(curr_meta$donor_id)[1]
+  for (a_subj in unique(curr_meta$donor_id)){
+    subj_meta <- curr_meta[which(curr_meta$donor_id == a_subj),]
+    if (nrow(subj_meta) == 1)
+      next
+    curr_counts <- CellBender_adjusted_counts[which(rownames(CellBender_adjusted_counts) 
+                                                    %in% rownames(subj_meta)),]
+    curr_counts <- as.data.frame(as.matrix(curr_counts))
+    
+    row <- as.data.frame(t(as.data.frame(colSums(curr_counts))))
+    row <- cbind(subj_meta[1, 1:7], row)
+    if (first){
+      out <- row
+      first <- F
+    }else{
+      out <- rbind(out, row)
+    }
+  }
+}
+write.csv(out, "../data/pseudo_bulk.csv", row.names = F)
+out <- read.csv("../data/pseudo_bulk.csv")
+```
+
+```{r}
+summary(as.factor(out$cell_type_leiden0.6))
+```
+```{r}
+
+meta <- select(out, c("disease", "sex", "age", "donor_id"))
+meta <- unique(meta)
+summary(as.factor(meta$disease))
+
+class <- "NF"
+summary(as.factor(meta[which(meta$disease == class),"sex"]))
+summary(meta[which(meta$disease == class),"age"])
+#10/16
+    
+class <- "HCM"
+summary(as.factor(meta[which(meta$disease == class),"sex"]))
+summary(meta[which(meta$disease == class),"age"])
+#5/15
+
+class <- "DCM"
+summary(as.factor(meta[which(meta$disease == class),"sex"]))
+summary(meta[which(meta$disease == class),"age"])
+#4/11
+```
+
+
+```{r}
+library(ggpubr)
+library(rstatix)
+rm(list = ls())
+
+out <- read.csv("../data/pseudo_bulk.csv")
+out <- out[which(!out$cell_type_leiden0.6 %in% c("Fibroblast_II", "Epicardial") ),]
+
+
+out$sex <- as.factor(out$sex)
+out$MTAP <- out$MTAP+1
+model <- lm(log(MTAP)~age+sex, data=out)
+out$adjusted_MTAP <- residuals(model)
+
+
+out$disease <- as.factor(out$disease)
+out$disease <- factor(out$disease, levels = c("NF", "HCM", "DCM"))
+out$cell_type_leiden0.6 <- as.factor(out$cell_type_leiden0.6)
+available_ct <- unique(out$cell_type_leiden0.6)
+ct_levels <- c("Activated_fibroblast", "Adipocyte", "Cardiomyocyte_I", "Cardiomyocyte_II", "Cardiomyocyte_III", "Endocardial", "Endothelial_I", "Endothelial_II", "Endothelial_III", "Fibroblast_I", "Lymphatic_endothelial", "Lymphocyte", "Macrophage", "Mast_cell", "Neuronal", "Pericyte_I", "Pericyte_II", "Proliferating_macrophage", "VSMC")
+
+summary(out$cell_type_leiden0.6)
+out$cell_type_leiden0.6 <- factor(out$cell_type_leiden0.6, levels = ct_levels)
+summary(out$cell_type_leiden0.6)
+
+
+counts <- out %>% group_by(cell_type_leiden0.6, disease) %>% summarise(n=n())
+counts <- out %>% group_by(cell_type_leiden0.6, disease) %>% summarise(n=n())
+
+stat.test <- out %>%
+  group_by(cell_type_leiden0.6) %>%
+  wilcox_test(adjusted_MTAP ~ disease) %>%
+  add_significance("p")
+stat.test <- stat.test %>% add_x_position(x = "cell_type_leiden0.6", dodge = 0.8)
+stat.test$y.position = 2
+index <- 28
+inc_value <- list()
+for (ct in unique(out$cell_type_leiden0.6)){
+  inc_value[[ct]] <- .2
+}
+for (index in c(1:nrow(stat.test))){
+  cell_out <- out[which(out$cell_type_leiden0.6 == stat.test$cell_type_leiden0.6[index]),]
+  max_adj <- max(cell_out$adjusted_MTAP)
+  tmp <- out[which(out$cell_type_leiden0.6 == stat.test$cell_type_leiden0.6[index] & out$disease %in% c(stat.test$group1[index], stat.test$group2[index])),]
+  if (stat.test$p.adj.signif[index] == "ns" | (stat.test$group1[index] != "NF" & stat.test$group2[index] != "NF")){
+    stat.test$y.position[index] <- min(out$adjusted_MTAP)
+    stat.test$p.adj.signif[index] <- " "
+  }else{
+    stat.test$y.position[index] <- max(cell_out$adjusted_MTAP)+inc_value[[stat.test$cell_type_leiden0.6[index]]]
+    inc_value[[stat.test$cell_type_leiden0.6[index]]] <- inc_value[[stat.test$cell_type_leiden0.6[index]]]+.4
+  }
+}
+
+bxp <- ggboxplot(out, x = "cell_type_leiden0.6", y = "adjusted_MTAP", fill = "disease")+
+  scale_fill_manual(values = c("NF" = "#0073C2", "HCM" = "#efc000", "DCM" = "#868686"))
+
+
+bxp + stat_pvalue_manual(stat.test,  label = "p.adj.signif", tip.length = 0)  +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+ theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))+xlab("Cell types")
+ggsave("../figures/perCellTypeComparison.pdf", width = 15)
+write.csv(stat.test, "../data/perCellTypeComparison.csv", row.names = F)
+```
+```{r}
+
+fibroblast <- out[which(out$cell_type_leiden0.6 == "Fibroblast_I"),]
+vsmc <- out[which(out$cell_type_leiden0.6 == "VSMC"),]
+
+
+ggboxplot(vsmc, 
+          x = "disease", y = "adjusted_MTAP",
+          color = "disease", palette = "jco", add = "jitter")+ 
+  stat_compare_means(comparisons = my_comparisons)+ggtitle("vsmc;adjusted_MTAP")
+ggsave("../figures/vsmc.pdf")
+ggsave("../figures/vsmc.jpg")
+
+ggboxplot(fibroblast, 
+          x = "disease", y = "adjusted_MTAP",
+          color = "disease", palette = "jco", add = "jitter")+ 
+  stat_compare_means(comparisons = my_comparisons)+ggtitle("fibroblast;adjusted_MTAP")
+ggsave("../figures/fibroblast.pdf")
+ggsave("../figures/fibroblast.jpg")
+```
+```{r}
+first <- T
+a_subj <- unique(out$donor_id)[1]
+for (a_subj in unique(out$donor_id)){
+  curr_df <- out[which(out$donor_id == a_subj),]
+  meta <- select(curr_df, c("biosample_id", "donor_id", "disease", "sex", "age", "lvef", "cell_type_leiden0.6"))
+  vals <- select(curr_df, -c("biosample_id", "donor_id", "disease", "sex", "age", "lvef", "cell_type_leiden0.6"))
+  tmp <- cbind(meta[1,], as.data.frame(t(as.data.frame(colSums(vals)))))
+  if (first){
+    first <- F
+    pseudo_bulk <- tmp
+  }else{
+    pseudo_bulk <- rbind(pseudo_bulk, tmp)
+  }
+}
+
+pseudo_bulk$sex <- as.factor(pseudo_bulk$sex)
+pseudo_bulk$MTAP <- pseudo_bulk$MTAP+1
+model <- lm(log(MTAP)~age+sex, data=pseudo_bulk)
+pseudo_bulk$adjusted_MTAP <- residuals(model)
+
+
+
+ggboxplot(pseudo_bulk, 
+          x = "disease", y = "adjusted_MTAP",
+          color = "disease", palette = "jco", add = "jitter")+ 
+  stat_compare_means(comparisons = my_comparisons, method="wilcox.test")+ggtitle("pseudobulk;adjusted_MTAP")
+ggsave("../figures/pseudo_bulk.pdf")
+ggsave("../figures/pseudo_bulk.jpg")
+```
+
+
