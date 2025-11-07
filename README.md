@@ -10,27 +10,31 @@
 
 ## Scripts
 - ChromHMM scripts
-  - Filter MintChIP peaks [filter_mintchip_macs_peaks.py](py_scripts/ChromHMM/000_filter_mintchip_macs_peaks.py)
-  - Filter ATAC peaks [filter_atac_macs_peaks.py](py_scripts/ChromHMM/001_filter_atac_macs_peaks.py)
-  - Jointly binerize [jointly_binarize_peaks.py](py_scripts/ChromHMM/002_jointly_binarize_peaks.py)
-  - Jointly model [jointly_model.py](py_scripts/ChromHMM/003_jointly_model.py)
+  - Filter MintChIP peaks [filter_mintchip_macs_peaks.py](scripts/ChromHMM/000_filter_mintchip_macs_peaks.py)
+  - Filter ATAC peaks [filter_atac_macs_peaks.py](scripts/ChromHMM/001_filter_atac_macs_peaks.py)
+  - Jointly binerize [jointly_binarize_peaks.py](scripts/ChromHMM/002_jointly_binarize_peaks.py)
+  - Jointly model [jointly_model.py](scripts/ChromHMM/003_jointly_model.py)
 
 - Stratified LDSC
-
-- MAGMA
 
 - LP_Morphology
 
 - Identifying novel enhancers
-  - Extracting RoadMaps enhancer regions [100_extract_roadmap_enhancers.py](py_scripts/postprocessin_enhancers/100_extract_roadmap_enhancers.py)
-  - Extracting VascCellWalls enhancer regions [101_parse_chromHMM_JointModel_enhancers.py](py_scripts/postprocessin_enhancers/101_parse_chromHMM_JointModel_enhancers.py)
-  - Merge and intersect peaks [102_merge_and_intersect_bed_files.py](py_scripts/postprocessin_enhancers/102_merge_and_intersect_bed_files.py)
-  - Extract novel enhancer regions [103_extract_novel_chromhmm_enhancers.py](py_scripts/postprocessin_enhancers/103_extract_novel_chromhmm_enhancers.py)
+  - Extracting RoadMaps enhancer regions [100_extract_roadmap_enhancers.py](scripts/postprocessin_enhancers/100_extract_roadmap_enhancers.py)
+  - Extracting VascCellWalls enhancer regions [101_parse_chromHMM_JointModel_enhancers.py](scripts/postprocessin_enhancers/101_parse_chromHMM_JointModel_enhancers.py)
+  - Merge and intersect peaks [102_merge_and_intersect_bed_files.py](scripts/postprocessin_enhancers/102_merge_and_intersect_bed_files.py)
+  - Extract novel enhancer regions [103_extract_novel_chromhmm_enhancers.py](scripts/postprocessin_enhancers/103_extract_novel_chromhmm_enhancers.py)
 
 - ROSE 
-  - Prepare ROSE input [00_make_enhancer_gff_and_scripts.py](py_scripts/ROSE/00_make_enhancer_gff_and_scripts.py)
+  - Prepare ROSE input [00_make_enhancer_gff_and_scripts.py](scripts/ROSE/00_make_enhancer_gff_and_scripts.py)
   
 
 - Single-nucleus RNA-seq from human hearts
-  - Adjusting and plotting expression profiles [](py_scripts/snRNA-seq_human_hearts/10_expressions.Rmd)
+  - Adjusting and plotting expression profiles [10_expressions.Rmd](scripts/snRNA-seq_human_hearts/10_expressions.Rmd)
+
+- MAC-Seq
+  - [QC](scripts/MAC_Seq/plate_qc_scripts)
+  - [Sliding window](scripts/MAC_Seq/macseq_sliding_window_stats.R) 
+  - [CFB analysis](scripts/MAC_Seq/cfb_final_analysis)
+  - [SMC analysis](scripts/MAC_Seq/smc_final_analysis)
 
