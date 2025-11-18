@@ -25,6 +25,8 @@
   
 
 - LP_Morphology
+  - [readme](py_r_scripts/LP_Morphology/README.md)
+  - [analysis](py_r_scripts/LP_Morphology)
 
 - Identifying novel enhancers
   - Extracting RoadMaps enhancer regions [100_extract_roadmap_enhancers.py](py_r_scripts/postprocessin_enhancers/100_extract_roadmap_enhancers.py)

@@ -1,0 +1,65 @@
+
+
+
+1) Number of unique features:
+3252 
+
+2) Rows per unique compartment:
+
+    Cells Cytoplasm    Nuclei 
+     1367       939       946 
+
+3) Rows per unique feature_channel:
+
+        AGP   BODIPYRNA Combination Compartment         DNA        Mito 
+        615        1025         180         202         615         615 
+
+4) Rows per unique feature_measure:
+
+                           Correlation                            Granularity 
+                                   300                                    320 
+                             Intensity Location/\nShape/Size/\nNeighbor/Count 
+                                   210                                    406 
+                    RadialDistribution                                Texture 
+                                   144                                   1872 
+
+
+
+
+
+
+
+
+
+
+_______________________________________________________________________________________________________________________________
+Each feature name is interpreted in three steps—compartment, marker, and measurement type—based entirely on the presence of specific words in the feature name, with assignment determined by the order in which conditions are checked.
+
+Compartment:
+A feature is labeled by its cellular origin:
+– Nucleus if the name contains “Nuclei”
+– Cytoplasm if it contains “Cytoplasm”
+– Cells (whole cell) if it contains “Cells”
+
+Marker (Channel):
+The biological marker is assigned based on the following keyword checks:
+– BODIPYRNA if it contains “SmallBODIPY”, or “LargeBODIPY”
+– Mito if it contains “Mito” but none of: “AGP,” “DNA,” “BODIPYRNA”
+– BODIPYRNA again, for features that contain only “BODIPYRNA” and not the others
+– AGP if it contains only “AGP”
+– DNA if it contains only “DNA”
+– Combination if it includes more than one of “Mito,” “AGP,” “DNA,” or “BODIPYRNA”
+– Compartment if none of the above apply
+Since only the first matching condition applies, the order of checks matters—e.g., a feature with both “Mito” and “DNA” will be labeled as Combination, not Mito or DNA alone.
+
+Measurement Type:
+The feature is classified by measurement type using the following word-based logic:
+– Intensity if the name includes “Intensity” and excludes all other measurement keywords
+– Texture if it includes “Texture”, regardless of whether it also includes “Correlation” (as long as it excludes all others)
+– Granularity if it includes “Granularity” only
+– Correlation if it includes “Correlation” and excludes all others, including “Texture”
+– Radial Distribution if it includes “RadialDistribution” only
+– Location / Shape / Size / Neighbor / Count if none of the above terms are present
+Importantly, the first matching rule is applied—so if a feature includes both "Texture" and "Correlation", it will be labeled as Texture, not Correlation.
+
+This stepwise, order-sensitive labeling system ensures each feature is uniquely categorized using only recognizable words in its name, without relying on technical parsing or metadata.
