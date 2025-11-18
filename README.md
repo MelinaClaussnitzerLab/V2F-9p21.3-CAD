@@ -16,6 +16,13 @@
   - Jointly model [jointly_model.py](py_r_scripts/ChromHMM/003_jointly_model.py)
 
 - Stratified LDSC
+  - [readme](py_r_scripts/LDSC_heritability/README.md)
+  - [analysis](py_r_scripts/LDSC_heritability)
+
+- MAGMA analysis
+  - [readme](py_r_scripts/MAGMA_analysis/README.md)
+  - [analysis](py_r_scripts/MAGMA_analysis)
+  
 
 - LP_Morphology
 
